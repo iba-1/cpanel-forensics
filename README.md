@@ -91,6 +91,62 @@ bash check_logs.sh example.com
 
 ---
 
+### `fix_symfony_perms.sh`
+
+Fix Symfony 1.x file permissions per cPanel account. Restores `public_html` ownership from `nobody` to the cPanel user while keeping `log/`, `cache/`, and upload directories writable by Apache.
+
+```bash
+bash fix_symfony_perms.sh --backup tecnoid3vbay    # backup + fix
+bash fix_symfony_perms.sh --backup-only tecnoid3vbay # backup only
+bash fix_symfony_perms.sh tecnoid3vbay              # fix only
+```
+
+**What it fixes:**
+
+| Directory | Ownership | Permissions | Why |
+|-----------|-----------|-------------|-----|
+| `public_html/` | `user:user` | 755 | Docroot should be user-owned |
+| `log/`, `cache/` | `user:nobody` | 775 | Symfony needs Apache write access |
+| `uploads/`, `form_upload/` | `user:nobody` | 775 | File upload directories |
+| Plugin dirs with numbered subdirs | `user:nobody` | 775 | Auto-detected runtime upload dirs (e.g. `dgNewsPlugin/102/`) |
+| Static asset dirs (css, js, images) | `user:user` | 755 | Read-only, no Apache write needed |
+
+Also truncates log files >100MB and removes `error_log` from the public docroot.
+
+---
+
+### `switch_php_version.sh`
+
+Switch a cPanel domain to a different PHP version while preserving all extensions.
+
+```bash
+bash switch_php_version.sh tecnoidealsrl.com 5.3
+bash switch_php_version.sh tecnoidealsrl.com ea-php70
+```
+
+Accepts flexible version formats (`5.3`, `53`, `php53`, `ea-php53`). Auto-detects current version, lists extensions, installs missing ones on target, switches, and verifies.
+
+---
+
+### `fix-restore.sh`
+
+Fix common issues after restoring a cPanel backup for Symfony 1.x sites.
+
+```bash
+bash fix-restore.sh /home/sitecode              # standard fixes
+bash fix-restore.sh /home/sitecode --fix-mysql   # also fix MySQL strict mode
+```
+
+**What it fixes:**
+- Comments out `ExpiresActive`/`ExpiresDefault` in `.htaccess`
+- Creates and fixes `log/` and `cache/` permissions
+- Fixes `public_html` directory permissions for uploads
+- Adds allowed IP to dev controllers (`frontend_dev.php`, `backend_dev.php`)
+- Optionally disables MySQL `STRICT_TRANS_TABLES`
+- Restarts Apache and MySQL
+
+---
+
 ## Usage
 
 ```bash
@@ -109,6 +165,15 @@ scp root@your-server:/root/ransomware_scan_*.tar.gz .
 
 # 5. Check specific domain logs
 ssh root@your-server 'bash /root/check_logs.sh example.com'
+
+# 6. Fix Symfony permissions (with backup)
+ssh root@your-server 'bash /root/fix_symfony_perms.sh --backup username'
+
+# 7. Switch PHP version
+ssh root@your-server 'bash /root/switch_php_version.sh example.com 7.0'
+
+# 8. Fix after backup restore
+ssh root@your-server 'bash /root/fix-restore.sh /home/username'
 ```
 
 ## Requirements
