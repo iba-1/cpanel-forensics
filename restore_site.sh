@@ -293,8 +293,8 @@ for BACKUP in "${BACKUPS[@]}"; do
             chmod -R 755 "$HOME_DIR/app/config"
         fi
 
-        # web/uploads or public_html/uploads
-        for dir in uploads bundles media; do
+        # web/uploads or public_html/uploads and Flysystem file storage
+        for dir in uploads bundles media files; do
             fix_shared_dir "$PUBLIC_HTML/$dir" "public_html/$dir/"
         done
 
@@ -323,7 +323,7 @@ for BACKUP in "${BACKUPS[@]}"; do
         fi
 
         # Upload directories in public_html
-        for dir in uploads form_upload export download repository; do
+        for dir in uploads form_upload export download repository files; do
             fix_shared_dir "$PUBLIC_HTML/$dir" "public_html/$dir/"
         done
 
@@ -351,6 +351,12 @@ for BACKUP in "${BACKUPS[@]}"; do
             fi
         done
     fi
+
+    # TinyMCE moxiemanager data dirs (cache, storage, logs, temp, files)
+    # These need shared ACLs because moxiemanager writes session/cache data at runtime
+    find "$PUBLIC_HTML" -type d -path '*/moxiemanager/data' 2>/dev/null | while read -r moxdir; do
+        fix_shared_dir "$moxdir" "$(echo "$moxdir" | sed "s|$HOME_DIR/||")/"
+    done
 
     log "  [2/10] Permissions fixed."
 
@@ -466,6 +472,12 @@ for BACKUP in "${BACKUPS[@]}"; do
                 if [ -n "$INSTALL_LIST" ]; then
                     log "    Installing extensions for $PHP_PKG..."
                     yum install -y $INSTALL_LIST &>/dev/null
+                fi
+
+                # Ensure handler is registered in php.conf (newly installed versions may lack it)
+                if ! grep -q "^${PHP_PKG}:" /etc/cpanel/ea4/php.conf 2>/dev/null; then
+                    echo "${PHP_PKG}: cgi" >> /etc/cpanel/ea4/php.conf
+                    log "    Registered ${PHP_PKG} handler in /etc/cpanel/ea4/php.conf"
                 fi
 
                 # Switch each domain
