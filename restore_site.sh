@@ -458,7 +458,14 @@ for BACKUP in "${BACKUPS[@]}"; do
             CURRENT_PHP=$(/usr/local/cpanel/bin/whmapi1 php_get_domain_handler domain="$(echo "$DOMAINS" | head -1)" 2>/dev/null \
                 | grep 'current:' | awk '{print $2}' | sed 's|cgi||; s|/.*||')
 
-            if [ -n "$CURRENT_PHP" ] && [ "$CURRENT_PHP" != "$PHP_PKG" ]; then
+            # If CURRENT_PHP is empty (system_default/inherit) or different, proceed with switch
+            if [ -z "$CURRENT_PHP" ] || [ "$CURRENT_PHP" != "$PHP_PKG" ]; then
+                # When inheriting system default, detect it for extension copying
+                if [ -z "$CURRENT_PHP" ]; then
+                    CURRENT_PHP=$(/usr/local/cpanel/bin/whmapi1 php_get_system_default_version 2>/dev/null \
+                        | grep 'version:' | awk '{print $2}')
+                    [ -n "$CURRENT_PHP" ] && log "    Current PHP (system default): $CURRENT_PHP"
+                fi
                 # Install matching extensions
                 EXTS=$(rpm -qa | grep "^${CURRENT_PHP}-php-" | sed "s/^${CURRENT_PHP}-php-//" | sed 's/-[0-9].*//' | sort -u)
                 INSTALL_LIST=""
@@ -486,7 +493,7 @@ for BACKUP in "${BACKUPS[@]}"; do
                     log "    Switched $domain → $PHP_PKG"
                 done
             else
-                log "    Already on $PHP_PKG — skipping."
+                log "    Already on $PHP_PKG (confirmed) — skipping."
             fi
         else
             log "    No domains found for $USER — skipping PHP switch."
