@@ -294,7 +294,7 @@ for BACKUP in "${BACKUPS[@]}"; do
         fi
 
         # web/uploads or public_html/uploads and Flysystem file storage
-        for dir in uploads bundles media files; do
+        for dir in uploads bundles media files images; do
             fix_shared_dir "$PUBLIC_HTML/$dir" "public_html/$dir/"
         done
 
@@ -323,7 +323,7 @@ for BACKUP in "${BACKUPS[@]}"; do
         fi
 
         # Upload directories in public_html
-        for dir in uploads form_upload export download repository files; do
+        for dir in uploads form_upload export download repository files images; do
             fix_shared_dir "$PUBLIC_HTML/$dir" "public_html/$dir/"
         done
 
