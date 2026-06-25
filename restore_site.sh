@@ -358,6 +358,11 @@ for BACKUP in "${BACKUPS[@]}"; do
         fix_shared_dir "$moxdir" "$(echo "$moxdir" | sed "s|$HOME_DIR/||")/"
     done
 
+    # cms_*/images/ dirs (sfCmsPlugin gallery uploads with numbered subdirs)
+    find "$PUBLIC_HTML" -maxdepth 2 -type d -name 'images' -path '*/cms_*/*' 2>/dev/null | while read -r cmsimg; do
+        fix_shared_dir "$cmsimg" "$(echo "$cmsimg" | sed "s|$HOME_DIR/||")/"
+    done
+
     log "  [2/10] Permissions fixed."
 
     # ─────────────────────────────────────────
