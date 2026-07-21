@@ -137,7 +137,11 @@ ok "Root: sì"
 # Check MariaDB is running
 if systemctl is-active --quiet mariadb 2>/dev/null || systemctl is-active --quiet mysql 2>/dev/null; then
     ok "MariaDB: in esecuzione"
-    MYSQL_SERVICE=$(systemctl is-active mariadb 2>/dev/null && echo "mariadb" || echo "mysql")
+    if systemctl is-active --quiet mariadb 2>/dev/null; then
+        MYSQL_SERVICE="mariadb"
+    else
+        MYSQL_SERVICE="mysql"
+    fi
 else
     die "MariaDB/MySQL non in esecuzione — niente da fare"
 fi
