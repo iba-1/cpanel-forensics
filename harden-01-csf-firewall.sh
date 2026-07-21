@@ -460,7 +460,7 @@ if [[ -x /usr/sbin/csf ]]; then
     info "Salto l'installazione."
 else
     will_do \
-        "curl -sSfL https://download.configserver.com/csf.tgz → /usr/src/csf.tgz" \
+        "Scarica CSF da GitHub (aetherinox/csf-firewall) → /usr/src/csf.tgz" \
         "tar -xzf + bash install.sh — installa CSF e LFD" \
         "perl /etc/csf/csftest.pl — verifica i moduli iptables necessari" \
         "Cleanup: rimuove csf.tgz dopo l'installazione" \
@@ -468,12 +468,25 @@ else
 
     if confirm_phase; then
         cd /usr/src
-        if ! curl -sSfL -o csf.tgz https://download.configserver.com/csf.tgz; then
-            die "Download CSF fallito"
+
+        # Primary: GitHub fork (configserver.com is offline since ~2025)
+        CSF_URL="https://github.com/aetherinox/csf-firewall/archive/refs/heads/main.tar.gz"
+        # Fallback: original configserver.com (if it comes back online)
+        CSF_URL_FALLBACK="https://download.configserver.com/csf.tgz"
+
+        if curl -sSfL -o csf.tgz "$CSF_URL" 2>/dev/null; then
+            ok "CSF scaricato da GitHub"
+        elif curl -sSfL -o csf.tgz "$CSF_URL_FALLBACK" 2>/dev/null; then
+            ok "CSF scaricato da configserver.com (fallback)"
+        else
+            die "Download CSF fallito da entrambe le sorgenti"
         fi
-        ok "CSF scaricato"
 
         tar -xzf csf.tgz
+        # GitHub archive extracts to csf-firewall-main/, rename to csf/
+        if [[ -d csf-firewall-main ]]; then
+            mv csf-firewall-main csf
+        fi
         cd csf
         bash install.sh >> "$LOG_FILE" 2>&1
         ok "CSF installato: $(csf -v 2>&1 | head -1)"

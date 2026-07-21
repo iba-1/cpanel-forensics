@@ -55,9 +55,12 @@ MODSEC_VENDOR_DIR="/etc/apache2/conf.d/modsec_vendor_configs"
 MODSEC_CPANEL_CONF="/etc/apache2/conf.d/modsec2.cpanel.conf"
 MODSEC_USER_CONF="/etc/apache2/conf.d/modsec2.user.conf"
 
-# OWASP CRS via cPanel vendor system
+# OWASP CRS via cPanel vendor system (configserver.com offline since ~2025)
 OWASP_VENDOR_URL="https://updates.configserver.com/modsec/owasp"
 OWASP_VENDOR_NAME="OWASP"
+# GitHub is the reliable source
+OWASP_CRS_VERSION="4.7.0"
+OWASP_CRS_GITHUB_URL="https://github.com/coreruleset/coreruleset/archive/refs/tags/v${OWASP_CRS_VERSION}.tar.gz"
 
 # -- Colors & UI --------------------------------------------------------------
 
