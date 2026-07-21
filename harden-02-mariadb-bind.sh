@@ -621,7 +621,8 @@ fi
 if command -v csf &>/dev/null; then
     echo ""
     info "CSF è installato — la porta 3306 dovrebbe essere bloccata anche dal firewall"
-    if csf -l 2>/dev/null | grep -q "DENY.*3306" || ! echo "$TCP_IN_PUBLIC" 2>/dev/null | grep -q "3306"; then
+    CSF_TCP_IN=$(grep '^TCP_IN ' /etc/csf/csf.conf 2>/dev/null | sed 's/.*= *"\(.*\)"/\1/' || true)
+    if csf -l 2>/dev/null | grep -q "DENY.*3306" || ! echo "$CSF_TCP_IN" | grep -q "3306"; then
         ok "3306 non è nelle porte pubbliche di CSF (doppia protezione)"
     fi
 fi
