@@ -373,14 +373,14 @@ SAMPLE_COUNT=0
 REMOTE_DSN=0
 for dbfile in /home/*/public_html/config/databases.yml /home/*/apps/*/config/databases.yml; do
     [[ -f "$dbfile" ]] || continue
-    ((SAMPLE_COUNT++))
+    ((SAMPLE_COUNT++)) || true
     db_host=$(grep -i "host:" "$dbfile" 2>/dev/null | head -1 | sed 's/.*host: *//; s/#.*//' | xargs || true)
     username=$(echo "$dbfile" | sed 's|/home/||; s|/.*||')
     if [[ -z "$db_host" || "$db_host" == "localhost" || "$db_host" == "127.0.0.1" ]]; then
         echo -e "    ${GREEN}✓${NC} $username → host=${db_host:-localhost}"
     else
         echo -e "    ${RED}✗${NC} $username → host=${db_host} ${RED}(REMOTO!)${NC}"
-        ((REMOTE_DSN++))
+        ((REMOTE_DSN++)) || true
         REMOTE_HOSTS="${REMOTE_HOSTS} dsn:${username}:${db_host}"
     fi
     [[ $SAMPLE_COUNT -ge 10 ]] && break
@@ -585,14 +585,14 @@ for dbfile in /home/*/public_html/config/databases.yml /home/*/apps/*/config/dat
     cpanel_user=$(echo "$dbfile" | sed 's|/home/||; s|/.*||')
 
     [[ -z "$db_name" || -z "$db_user" ]] && continue
-    ((APP_TESTED++))
+    ((APP_TESTED++)) || true
 
     if mysql -u "$db_user" -p"$db_pass" -e "USE \`${db_name}\`; SELECT 1;" > /dev/null 2>&1; then
         ok "$cpanel_user → ${db_user}@localhost/${db_name}: OK"
-        ((APP_OK++))
+        ((APP_OK++)) || true
     else
         warn "$cpanel_user → ${db_user}@localhost/${db_name}: FALLITO"
-        ((APP_FAIL++))
+        ((APP_FAIL++)) || true
     fi
 
     [[ $APP_TESTED -ge 5 ]] && break

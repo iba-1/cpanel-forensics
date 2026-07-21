@@ -716,28 +716,28 @@ for check_name in "PermitRootLogin=prohibit-password:${POST_PERMIT}" "PasswordAu
 
     if [[ "$actual" == "$expected" ]]; then
         ok "$label: $actual"
-        ((VALIDATION_PASS++))
+        ((VALIDATION_PASS++)) || true || true
     else
         warn "$label: $actual (atteso: $expected)"
-        ((VALIDATION_FAIL++))
+        ((VALIDATION_FAIL++)) || true
     fi
 done
 
 # Check for weak algorithms
 if echo "$POST_MACS" | grep -q "hmac-sha1\|umac-64"; then
     warn "MACs: contiene ancora algoritmi deboli"
-    ((VALIDATION_FAIL++))
+    ((VALIDATION_FAIL++)) || true
 else
     ok "MACs: solo algoritmi forti"
-    ((VALIDATION_PASS++))
+    ((VALIDATION_PASS++)) || true
 fi
 
 if echo "$POST_KEXS" | grep -q "diffie-hellman-group14-sha1\|diffie-hellman-group1"; then
     warn "KEX: contiene ancora algoritmi deboli"
-    ((VALIDATION_FAIL++))
+    ((VALIDATION_FAIL++)) || true
 else
     ok "KEX: solo algoritmi forti"
-    ((VALIDATION_PASS++))
+    ((VALIDATION_PASS++)) || true
 fi
 
 log "Validazione: $VALIDATION_PASS OK, $VALIDATION_FAIL problemi"

@@ -743,10 +743,10 @@ for port in "${!SERVICES[@]}"; do
     svc="${SERVICES[$port]}"
     if ss -tlnp 2>/dev/null | grep -q ":${port} "; then
         ok "$svc (porta $port) in ascolto"
-        ((PASS++))
+        ((PASS++)) || true
     else
         warn "$svc (porta $port) NON in ascolto"
-        ((FAIL++))
+        ((FAIL++)) || true
     fi
 done
 

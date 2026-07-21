@@ -740,13 +740,13 @@ if confirm_phase; then
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "Host: $domain" http://127.0.0.1/ 2>/dev/null || echo "000")
             if [[ "$HTTP_CODE" =~ ^(200|301|302|303|307|308)$ ]]; then
                 ok "$domain → HTTP $HTTP_CODE"
-                ((TEST_PASS++))
+                ((TEST_PASS++)) || true
             elif [[ "$HTTP_CODE" == "000" ]]; then
                 warn "$domain → timeout/errore"
-                ((TEST_FAIL++))
+                ((TEST_FAIL++)) || true
             else
                 warn "$domain → HTTP $HTTP_CODE"
-                ((TEST_FAIL++))
+                ((TEST_FAIL++)) || true
             fi
         done
 
