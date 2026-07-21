@@ -313,18 +313,27 @@ echo ""
 # 1a. mysql.user hosts
 echo -e "  ${BOLD}Host in mysql.user:${NC}"
 REMOTE_HOSTS=""
+SERVER_HOSTNAME=$(hostname 2>/dev/null || true)
+SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
+SERVER_SHORT=$(hostname -s 2>/dev/null || true)
 while IFS=$'\t' read -r host user plugin; do
     host=$(echo "$host" | xargs)
+    user=$(echo "$user" | xargs)
+
+    # Skip MariaDB roles (host is empty, e.g. PUBLIC role in MariaDB 10.11+)
+    if [[ -z "$host" ]]; then
+        echo -e "    ${DIM}⊘${NC} ${user}@(nessun host) — ruolo MariaDB, ignorato"
+        continue
+    fi
+
     is_local=0
     case "$host" in
         localhost|127.0.0.1|::1) is_local=1 ;;
     esac
     # Also match server's own hostname/IP
-    SERVER_HOSTNAME=$(hostname 2>/dev/null || true)
-    SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
     [[ "$host" == "$SERVER_HOSTNAME" ]] && is_local=1
     [[ "$host" == "$SERVER_IP" ]] && is_local=1
-    [[ "$host" == "$(hostname -s 2>/dev/null)" ]] && is_local=1
+    [[ "$host" == "$SERVER_SHORT" ]] && is_local=1
 
     if [[ $is_local -eq 1 ]]; then
         echo -e "    ${GREEN}✓${NC} ${user}@${host} (locale)"
