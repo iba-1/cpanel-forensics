@@ -437,12 +437,14 @@ will_do \
     "Contenuto:" \
     "  [mysqld]" \
     "  bind-address = 127.0.0.1" \
-    "  skip-name-resolve" \
     "" \
     "bind-address=127.0.0.1 → MariaDB accetta connessioni solo da localhost" \
-    "skip-name-resolve → non fa DNS lookup sugli host (performance + sicurezza)" \
     "" \
-    "Nota: usiamo un file separato in my.cnf.d/ per non toccare i file gestiti da cPanel." \
+    "Nota: NON usiamo skip-name-resolve perché i grant cPanel usano 'localhost'" \
+    "e le app si connettono via 127.0.0.1 — senza name-resolve MariaDB non" \
+    "traduce 127.0.0.1→localhost e i grant non matchano (errore 1130)." \
+    "" \
+    "Usiamo un file separato in my.cnf.d/ per non toccare i file gestiti da cPanel." \
     "Se cPanel rigenera my.cnf, il nostro override sopravvive."
 
 # Show what exists now
@@ -453,15 +455,6 @@ if [[ -z "$EXISTING_BIND" ]]; then
     info "  Nessun bind-address configurato (default: 0.0.0.0)"
 else
     echo "$EXISTING_BIND" | while read -r line; do
-        info "  $line"
-    done
-fi
-
-EXISTING_SKIP=$(grep -r "skip-name-resolve" /etc/my.cnf /etc/my.cnf.d/ 2>/dev/null || true)
-if [[ -z "$EXISTING_SKIP" ]]; then
-    info "  Nessun skip-name-resolve configurato"
-else
-    echo "$EXISTING_SKIP" | while read -r line; do
         info "  $line"
     done
 fi
@@ -481,7 +474,6 @@ if confirm_phase; then
 # =============================================================================
 [mysqld]
 bind-address = 127.0.0.1
-skip-name-resolve
 EOF
 
     ok "File override creato: $HARDENING_CONF"
